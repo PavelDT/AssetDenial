@@ -1,10 +1,16 @@
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import View.ParallaxBackground;
 import collisiondetection.Position;
 import game2D.*;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
 
 // Game demonstrates how we can override the GameCore class
 // to create our own 'game'. We usually need to implement at
@@ -34,15 +40,15 @@ public class Game extends GameCore
 
     // Game resources
     Animation landing;
-    Animation fire;
     private final int fireDuration = 2500;
     
     Sprite	player = null;
     ArrayList<Sprite> clouds = new ArrayList<Sprite>();
-    // requires concurrent collection as projectiles are added
-    // as others are being removed. The concurrent collection allows for
-    // safeguarding against ConcurrentModificationException.
-    Map<Sprite, Long> fires = new ConcurrentHashMap();
+    // Collection of projecties fired by the player
+    // LinkedList is most suitable for removing at a specified index
+    List<Sprite> fires = new LinkedList<>();
+    // Collection of sprites building the parallax background
+    ParallaxBackground background;
 
     TileMap tmap = new TileMap();	// Our tile map, note that we load it in init()
     
@@ -79,19 +85,17 @@ public class Game extends GameCore
         
         landing = new Animation();
         landing.loadAnimationFromSheet("images/landbird2.png", 8, 1, 60);
-        fire = new Animation();
-        // fire.addFrame(loadImage("images/fire.png"), 1000);
-        fire.loadAnimationFromSheet("images/fire.png",1, 1, fireDuration);
 
         // Initialise the player with an animation
         player = new Sprite(landing);
-        
+
+        // initialise parallax background
+        background = new ParallaxBackground(screenHeight, player);
+        background.init();
+
         // Load a single cloud animation
         Animation ca = new Animation();
         ca.addFrame(loadImage("images/cloud.png"), 1000);
-
-        Animation fr = new Animation();
-        fr.addFrame(loadImage("images/fire.png"),1000);
 
         // Create 3 clouds at random positions off the screen
         // to the right
@@ -126,7 +130,7 @@ public class Game extends GameCore
         player.setVelocityY(0);
         player.show();
     }
-    
+
     /**
      * Draw the current state of the game
      */
@@ -140,15 +144,13 @@ public class Game extends GameCore
         int xo = ((int)player.getX())*-1;
         int yo = ((int)player.getY())*-1;
 
-        // If relative, adjust the offset so that
-        // it is relative to the player
-
-        // ...?
-//        int xo = ((int)player.getX())*-1;
-//        int yo = ((int)player.getY())*-1;
-        
-        g.setColor(Color.blue);
+        // setup background
+        g.setColor(new Color(255, 255, 255));
         g.fillRect(0, 0, getWidth(), getHeight());
+
+
+        // draw parallax background
+        background.draw(g);
         
         // Apply offsets to sprites then draw them
         for (Sprite s: clouds)
@@ -157,16 +159,16 @@ public class Game extends GameCore
         	s.draw(g);
         }
         // draw each sprite for projectiles
-        for (Map.Entry<Sprite, Long> fireSprite: fires.entrySet()) {
-            fireSprite.getKey().setOffsets(xo+400,yo+280);
-            fireSprite.getKey().draw(g);
+        for (Sprite fireSprite: fires) {
+            fireSprite.setOffsets(xo+400,yo+280);
+            fireSprite.draw(g);
         }
 
-        // Apply offsets to player and draw 
+        // Apply offsets to player and draw
         // player.setOffsets(xo, yo);
         player.setOffsets(xo+400,yo+280);
         player.draw(g);
-                
+
         // Apply offsets to tile map and draw  it
         tmap.draw(g,xo+400,yo+280);
 
@@ -194,17 +196,17 @@ public class Game extends GameCore
        		player.setAnimationSpeed(1.8f);
        		player.setVelocityY(-0.2f);
        	}
-                
+
+       	// update parallax background
+       	background.update(elapsed);
+
        	for (Sprite s: clouds)
        		s.update(elapsed);
-       	// update projectile elapsed time and check if any animations are completed
-        for (Map.Entry<Sprite, Long> fireSprite: fires.entrySet()) {
-            // check if animation has completed, if sh hide the sprite and remove it
-            if (System.currentTimeMillis() > (fireSprite.getValue() + fireDuration)) {
-                fireSprite.getKey().hide();
-                fires.remove(fireSprite.getKey());
-            } else {
-                fireSprite.getKey().update(elapsed);
+       	for (Sprite s: fires) {
+       	    s.update(elapsed);
+            if (s.getAnimation().hasLooped()) {
+                s.hide();
+
             }
         }
        	
@@ -241,7 +243,7 @@ public class Game extends GameCore
 
 
         Position p = new Position(s, tmap);
-         p.debugPosition();
+         // p.debugPosition();
     }
     
     
@@ -290,16 +292,15 @@ public class Game extends GameCore
             Sound s = new Sound("sounds/fire.wav");
             s.start();
 
-
-            fire.play();
-            fire.start();
+            Animation fire = new Animation();
+            fire.loadAnimationFromSheet("images/fire.png",1, 1, fireDuration);
             Sprite fireSprite = new Sprite(fire);
             // place on right side of player
             fireSprite.setX(player.getX() + player.getWidth());
             fireSprite.setY(player.getY());
             fireSprite.show();
 
-            fires.put(fireSprite, System.currentTimeMillis());
+            fires.add(fireSprite);
         }
 
     }

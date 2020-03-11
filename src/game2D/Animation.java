@@ -74,8 +74,10 @@ public class Animation {
     	if (!play) return; 
     	
     	elapsedTime = (long)(elapsedTime * animSpeed);
-    	
-        if (frames.size() > 1) 
+
+    	// animations with a single frame should be able to detect if they have looped as they
+        // are supposed to disappear after a certain amount of time aka once they have looped.
+        if (frames.size() > 0)
         {
             animTime += elapsedTime;
 
