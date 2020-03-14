@@ -112,7 +112,7 @@ public abstract class GameCore extends JFrame implements KeyListener {
     /**
      * Shows and hides the main game window
      * 
-     * @param true to show the game window, false to hide
+     * @param show to show the game window, false to hide
      * 
      */
     public void setVisible(boolean show)
@@ -160,12 +160,12 @@ public abstract class GameCore extends JFrame implements KeyListener {
 
         Graphics2D g;
         isRunning = true;
-        
+
         // Create our own buffer
         buffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
         bg = (Graphics2D)buffer.createGraphics();
         bg.setClip(0, 0, getWidth(), getHeight());
-        
+
         while (isRunning) {
             elapsedTime = System.currentTimeMillis() - currTime;
             currTime += elapsedTime;
@@ -175,8 +175,8 @@ public abstract class GameCore extends JFrame implements KeyListener {
 
 	        // Get the current graphics device 	            
             g = (Graphics2D)win.getGraphics();
-            
-            
+
+
 	        if (g != null)
 	        {
  	            if (fullScreen)

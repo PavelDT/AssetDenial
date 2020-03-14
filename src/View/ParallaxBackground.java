@@ -13,10 +13,12 @@ public class ParallaxBackground {
 
     Sprite player;
     final int screenHeight;
+    final int screenWidth;
     List<Sprite> parallax = new ArrayList<>();
 
-    public ParallaxBackground(int screenHeight, Sprite player) {
+    public ParallaxBackground(int screenWidth, int screenHeight, Sprite player) {
         this.screenHeight = screenHeight;
+        this.screenWidth = screenWidth;
         this.player = player;
     }
 
@@ -55,9 +57,20 @@ public class ParallaxBackground {
         buildingSprite3.setX(500);
         buildingSprite3.show();
         parallax.add(buildingSprite3);
+        // Ship
+        Animation ca = new Animation();
+        ca.loadAnimationFromSheet("images/ship.png", 6, 4, 150);
+        Sprite fleet = new Sprite(ca);
+        fleet.setX(screenWidth + (int)200.0f);
+        fleet.setY(300.0f);
+        fleet.setVelocityX(-0.109f);
+        fleet.show();
+        parallax.add(fleet);
     }
 
     public void draw(Graphics2D g) {
+        // add ship first
+        parallax.get(4).drawTransformed(g);
         // move mountains only horizontally, creates an affect of them being far away
         parallax.get(3).setOffsets((int)(player.getX() * 0.1f) * -1, 0);
         parallax.get(3).drawTransformed(g);

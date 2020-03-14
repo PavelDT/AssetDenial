@@ -1,9 +1,7 @@
 package game2D;
 
 import javax.swing.ImageIcon;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.io.*;
@@ -333,7 +331,7 @@ public class TileMap
 		if (g == null) return;
 	
 		Image img=null;
-		Rectangle rect = (Rectangle)g.getClip();
+		Shape rect = g.getClip();
 		int xc,yc;
 		
 		for (int r=0; r<mapHeight; r++)
@@ -346,8 +344,8 @@ public class TileMap
 				yc = yoff + r*tileHeight;
 				
 				// Only draw the tile if it is on screen, otherwise go back round the loop
-				if (xc+tileWidth < 0 || xc >= rect.x + rect.width) continue;
-				if (yc+tileHeight < 0 || yc >= rect.y + rect.height) continue;
+				if (xc+tileWidth < 0 || xc >= rect.getBounds().x + rect.getBounds().width) continue;
+				if (yc+tileHeight < 0 || yc >= rect.getBounds().y + rect.getBounds().height) continue;
 				g.drawImage(img,xc,yc,null);
 			}
 		}		

@@ -32,6 +32,8 @@ public class Sprite {
     private double scale;
     // The rotation to apply to the sprite image
     private double rotation;
+    // whether the image is fipped on X axis or not
+    private int flipX;
 
     // If render is 'true', the sprite will be drawn when requested
     private boolean render;
@@ -52,6 +54,7 @@ public class Sprite {
         render = false;
         scale = 1.0f;
         rotation = 0.0f;
+        flipX = 1;
     }
 
     /**
@@ -252,6 +255,18 @@ public class Sprite {
     	scale = s;
     }
 
+    public void setFlipX(boolean flipX) {
+        if (flipX)
+            this.flipX = -1;
+        else
+            this.flipX = 1;
+    }
+
+    public boolean getFlipX() {
+        // if flipx 1, return true
+        return flipX != 1;
+    }
+
 	/**
 		Get the current value of the scaling attribute.
 		See 'setScale' for more information.
@@ -305,7 +320,7 @@ public class Sprite {
     {
     	if (!render) return;
 
-    	g.drawImage(getImage(),(int)x+xoff,(int)y+yoff,null);
+    	g.drawImage(getImage(),(int)x+xoff,(int)y+yoff, (int)width, (int)height, null);
     }
 
 	/**
@@ -319,10 +334,17 @@ public class Sprite {
     {
     	if (!render) return;
 
-		AffineTransform transform = new AffineTransform();
-		transform.translate(Math.round(x)+xoff,Math.round(y)+yoff);
-		transform.scale(scale,scale);
+    	AffineTransform transform = new AffineTransform();
+
+    	float xPos = Math.round(x)+xoff;
+        if (flipX == -1) {
+            xPos = xPos + getImage().getWidth(null);
+        }
+
+        transform.translate(xPos,Math.round(y)+yoff);
+		transform.scale(scale * flipX,scale);
 		transform.rotate(rotation,getImage().getWidth(null)/2,getImage().getHeight(null)/2);
+
 		// Apply transform to the image and draw it
 		g.drawImage(getImage(),transform,null);
     }
