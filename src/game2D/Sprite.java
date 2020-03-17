@@ -15,7 +15,7 @@ public class Sprite {
 	// The current Animation to use for this sprite
     private Animation anim;		
 
-    // Position (pixels)
+    // PlayerCollision (pixels)
     private float x;
     private float y;
 
@@ -42,6 +42,17 @@ public class Sprite {
     // relative to specific on screen position (usually the player)
     private int xoff=0;
     private int yoff=0;
+
+    /**
+     * Create a new sprite object with no annimation, will require explicit setting of animation later
+     * Enables classes extending Sprite to control their animations
+     */
+    public Sprite() {
+        render = false;
+        scale = 1.0f;
+        rotation = 0.0f;
+        flipX = 1;
+    }
 
     /**
      *  Creates a new Sprite object with the specified Animation.

@@ -117,7 +117,7 @@ public abstract class GameCore extends JFrame implements KeyListener {
      */
     public void setVisible(boolean show)
     {
-    	if (!fullScreen) 
+    	if (!fullScreen)
     	{
     		super.setVisible(show);
     		return;

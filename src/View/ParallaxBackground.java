@@ -35,18 +35,18 @@ public class ParallaxBackground {
         // parallax.add(backgroundSprite);
         // first building
         Animation building1 = new Animation();
-        building1.addFrame(new ImageIcon("maps/parallax/building1.png").getImage(), 60);
+        building1.addFrame(new ImageIcon("maps/parallax/building2.png").getImage(), 60);
         Sprite buildingSprite1 = new Sprite(building1);
         buildingSprite1.setY(screenHeight - buildingSprite1.getHeight() - BACKGROUND_VISIBLE);
-        buildingSprite1.setX(300);
+        buildingSprite1.setX(500);
         buildingSprite1.show();
         parallax.add(buildingSprite1);
         // 2nd building
         Animation building2 = new Animation();
-        building2.addFrame(new ImageIcon("maps/parallax/building2.png").getImage(), 60);
+        building2.addFrame(new ImageIcon("maps/parallax/building1.png").getImage(), 60);
         Sprite buildingSprite2 = new Sprite(building2);
         buildingSprite2.setY(screenHeight - buildingSprite2.getHeight() - BACKGROUND_VISIBLE);
-        buildingSprite2.setX(800);
+        buildingSprite2.setX(10);
         buildingSprite2.show();
         parallax.add(buildingSprite2);
         // 3th building
@@ -63,7 +63,7 @@ public class ParallaxBackground {
         Sprite fleet = new Sprite(ca);
         fleet.setX(screenWidth + (int)200.0f);
         fleet.setY(300.0f);
-        fleet.setVelocityX(-0.109f);
+        fleet.setVelocityX(-0.009f);
         fleet.show();
         parallax.add(fleet);
     }
@@ -74,12 +74,12 @@ public class ParallaxBackground {
         // move mountains only horizontally, creates an affect of them being far away
         parallax.get(3).setOffsets((int)(player.getX() * 0.1f) * -1, 0);
         parallax.get(3).drawTransformed(g);
-        parallax.get(2).setOffsets((int)(player.getX() * 0.3f) * -1, 0);
+        parallax.get(2).setOffsets((int)(player.getX() * 0.2f) * -1, 0);
         parallax.get(2).drawTransformed(g);
-        parallax.get(1).setOffsets((int)(player.getX() * 0.2f) * -1, 0);
+        parallax.get(1).setOffsets((int)(player.getX() * 0.3f) * -1, 0);
         parallax.get(1).drawTransformed(g);
         // background is on top of buildings
-        parallax.get(0).setOffsets((int)(player.getX() * 0.15f) * -1, 0);
+        parallax.get(0).setOffsets((int)(player.getX() * 0.35f) * -1, 0);
         parallax.get(0).drawTransformed(g);
     }
 
