@@ -12,24 +12,19 @@ public class Key extends Sprite {
     private Animation keyAnimation = new Animation();;
     private final String imagePath = "images/key.png";
     private Random rng = new SecureRandom();
-    private TileMap tmap;
 
-    public Key(TileMap tmap) {
+    public Key() {
         super();
 
-        // used for positioning the key
-        this.tmap = tmap;
         keyAnimation.addFrame(new ImageIcon(imagePath).getImage(), 60);
         super.setAnimation(keyAnimation);
-        // set key position
-        positionKey();
     }
 
     /**
      * Randomly generates the position of the key somewhere on the map.
      * Map dependant. Assumes map has atleast 155 x tiles and 14 y tiles
      */
-    private void positionKey() {
+    public void positionKey(TileMap tmap) {
 
         // ensure map is large enough.
         if (tmap.getPixelWidth() / tmap.getTileWidth() < 155 || tmap.getPixelHeight() / tmap.getTileHeight() < 14) {
@@ -47,5 +42,15 @@ public class Key extends Sprite {
         // set key position
         setX(x * tmap.getTileWidth());
         setY(y * tmap.getTileHeight() + this.getHeight());
+    }
+
+    public void keyCollected(TileMap tmap) {
+        // hide the key
+        hide();
+
+        // open end of game gate.
+        tmap.setTileChar('.', 218, 4);
+        tmap.setTileChar('.', 219, 4);
+        tmap.setTileChar('.', 220, 4);
     }
 }

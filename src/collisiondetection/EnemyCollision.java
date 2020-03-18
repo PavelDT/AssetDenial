@@ -78,12 +78,12 @@ public class EnemyCollision {
         if (collisionStatus2[RIGHT]) {
             sprite.setVelocityX(0.01f);
             float currentX = sprite.getX();
-            sprite.setX(currentX - 2f);
+            sprite.setX(currentX - 7f);
         }
         if (collisionStatus2[LEFT]) {
             sprite.setVelocityX(-0.01f);
             float currentX = sprite.getX();
-            sprite.setX(currentX + 2f);
+            sprite.setX(currentX + 7f);
         }
     }
 }

@@ -15,6 +15,9 @@ public class Portal extends Sprite {
         super();
         portalAnimation.loadAnimationFromSheet(imagePath, 5, 1, 120);
         super.setAnimation(portalAnimation);
+    }
+
+    public void initSound() {
         portalSound = new Sound(soundPath);
     }
 

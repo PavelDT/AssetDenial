@@ -1,4 +1,4 @@
-package View;
+package view;
 
 import game2D.Animation;
 import game2D.Sprite;
