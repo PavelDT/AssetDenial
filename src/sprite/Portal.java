@@ -1,4 +1,4 @@
-package model;
+package sprite;
 
 import game2D.Animation;
 import game2D.Sound;

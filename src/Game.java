@@ -6,11 +6,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import collisiondetection.MapCollision;
 import collisiondetection.SpriteCollision;
+import view.MenuManager;
 import view.ParallaxBackground;
 import collisiondetection.PlayerCollision;
 import collisiondetection.EnemyCollision;
 import game2D.*;
-import model.*;
+import sprite.*;
 
 
 // Game demonstrates how we can override the GameCore class
@@ -37,11 +38,13 @@ public class Game extends GameCore
     private float gravity = 0.0003f;
     private boolean flap = false;
 
-    Hero player = null;
+    private Hero player = null;
     // Key used to unlock exit for level.
-    Key key = null;
+    private Key key = null;
     // Portal used to complete level
-    Portal portal = null;
+    private Portal portal = null;
+    // menu manager
+    private MenuManager menu;
     // sprite that uses ship background animation from
     // Collection of projecties fired by the player
     // LinkedQueue is most suitable for time based animations as it's FIFO
@@ -51,22 +54,24 @@ public class Game extends GameCore
     // collection of enemies - Concurrent Queue taht is linked - as enemies will be added and removed frequently
     private Queue<Enemy> enemies;
     // Collection of sprites building the parallax background
-    ParallaxBackground background;
+    private ParallaxBackground background;
     // Our tile map, note that we load it in init()
-    TileMap tmap = new TileMap();
+    private TileMap tmap = new TileMap();
     // Handlers for collision
-    MapCollision mapCollision;
+    private MapCollision mapCollision;
     private final int PLAYER_SCREEN_OFFSET = 200;
     // how fast the player moves left / right
     private float VELOCITY_FACTOR = 0.1f;
     // how long to wait before switching levels in ms.
     private final int LEVEL_CHANGE_DURATION = 2500;
     // The score will be the total time elapsed since a crash
-    long total;
+    private long total;
     // tracks player progress
-    int LEVEL = 1;
+    private int LEVEL = 1;
     // used for random number generation
-    SecureRandom rng;
+    private SecureRandom rng;
+    // used for pausing the game
+    private boolean PAUSE = false;
 
 
     /**
@@ -102,6 +107,8 @@ public class Game extends GameCore
         background.init();
 
         rng = new SecureRandom();
+
+        menu = new MenuManager(screenWidth, screenHeight);
 
         initialiseLevel();
     }
@@ -156,6 +163,9 @@ public class Game extends GameCore
         // Be careful about the order in which you draw objects - you
         // should draw the background first, then work your way 'forward'
 
+        // set up font to be used
+        g.setFont(new Font("Arial", Font.PLAIN,12));
+
         // First work out how much we need to shift the view
         // in order to see where the player is.
         int xo = (int)((player.getX() - PLAYER_SCREEN_OFFSET)*-1);
@@ -174,22 +184,18 @@ public class Game extends GameCore
             fireSprite.drawTransformed(g);
         }
 
-        // draw enemies
-        for (Enemy e: enemies) {
-            e.setOffsets(xo, yo);
-            // draw the healthbar
-            g.setColor(e.getHealthColour());
-            g.draw(e.getHealthRectangle(xo));
-
-            e.drawTransformed(g);
-        }
-
         // Apply offsets to player and draw
         // player.setOffsets(xo, yo);
         player.setOffsets(xo, yo);
         g.setColor(player.getHealthColour());
         g.draw(player.getHealthRectangle(xo));
         player.drawTransformed(g);
+
+        // draw enemies
+        for (Enemy e: enemies) {
+            e.setOffsets(xo, yo);
+            e.drawTransformed(g, xo, yo, player.getX());
+        }
 
         // draw the key on top of the map
         key.setOffsets(xo, yo);
@@ -215,7 +221,9 @@ public class Game extends GameCore
         g.drawString(msgDbug, getWidth() - 200, 100);
         g.drawString(msgDbug2, getWidth() - 200, 120);
 
-
+        if (PAUSE) {
+            menu.draw(g);
+        }
     }
 
     /**
@@ -225,6 +233,16 @@ public class Game extends GameCore
      */
     public void update(long elapsed)
     {
+        // dont update anything if the game is paused
+        if (PAUSE) {
+            return;
+        }
+
+        // todo -- display "you died" message etc.
+        if (player.getHealth() < 1) {
+
+        }
+
         // Make adjustments to the speed of the sprite due to gravity
         player.setVelocityY(player.getVelocityY()+(gravity*elapsed));
 
@@ -244,22 +262,19 @@ public class Game extends GameCore
         portal.update(elapsed);
         key.update(elapsed);
         // loops for the collections
-        for (Sprite s: fires) {
+        for (Projectile s: fires) {
             s.update(elapsed);
             if (s.getAnimation().hasLooped()) {
                 s.hide();
                 fires.remove(s);
             }
         }
-        for (Sprite s: enemies) {
-            s.update(elapsed);
-        }
-
 
         // Then check for any collisions that may have occurred
         handlePlayerCollision(player);
         for (Enemy e : enemies) {
-            e.setVelocityY(e.getVelocityY()+(gravity*elapsed));
+            e.update(elapsed);
+            e.setVelocityY(e.getVelocityY()+(gravity * elapsed));
             handleEnemyCollision(e);
 
             // check if enemies are hit by player projectiles
@@ -273,6 +288,11 @@ public class Game extends GameCore
                         enemies.remove(e);
                     }
                 }
+            }
+
+            // check if player is hit by enemy attacks
+            if (SpriteCollision.boundingBoxCollision(player, e.getAttack())) {
+                player.drainHealth();
             }
         }
 
@@ -317,26 +337,23 @@ public class Game extends GameCore
     {
         int key = e.getKeyCode();
 
-        // todo -- rm this.
-        if (key == KeyEvent.VK_R) {
-            for (Sprite en : enemies) {
-                if (en.getVelocityX() < 0)
-                    en.setVelocityX(0.1f);
-                else if (en.getVelocityX() >= 0)
-                    en.setVelocityX(-0.1f);
-            }
-        }
-        // todo - also remove this.
-        if (key == KeyEvent.VK_T) {
-            if (VELOCITY_FACTOR == 0.1f) {
-                VELOCITY_FACTOR = 1f;
-            }
-            else {
-                VELOCITY_FACTOR = 0.1f;
-            }
-        }
+        // check if player wants to unpause
+        if (key == KeyEvent.VK_ESCAPE) togglePause();
 
-        if (key == KeyEvent.VK_ESCAPE) stop();
+        if (PAUSE) {
+            if (key == KeyEvent.VK_UP && menu.menuItem > 1) {
+                menu.menuItem--;
+            }
+            if (key == KeyEvent.VK_DOWN && menu.menuItem < 4) {
+                menu.menuItem++;
+            }
+
+            if (key == KeyEvent.VK_ENTER) {
+                managePause(menu.menuItem);
+            }
+            // we don't care about remaining key events when the game is paused.
+            return;
+        }
 
         if (key == KeyEvent.VK_UP) flap = true;
 
@@ -362,14 +379,13 @@ public class Game extends GameCore
         {
             Projectile fireSprite = new Projectile(player);
             // fire from middle of player sprite
-            fireSprite.setY(player.getY() + player.getHeight()/4);
+            fireSprite.setY(player.getY() + player.getHeight()/4f);
             // inherit position of fire from player
             fireSprite.show();
             fireSprite.playSound();
             // keeps tracking of current projectiles
             fires.add(fireSprite);
         }
-
     }
 
     /**
@@ -386,7 +402,6 @@ public class Game extends GameCore
         // Need to use break to prevent fall through.
         switch (key)
         {
-            case KeyEvent.VK_ESCAPE : stop(); break;
             case KeyEvent.VK_UP     : flap = false; break;
             case KeyEvent.VK_LEFT   :
                 if (player.getVelocityX() < 0) {
@@ -404,9 +419,13 @@ public class Game extends GameCore
         }
     }
 
+    /**
+     * Adds enemies to interact with the player
+     * @param level - Current level of player, increases number of enemies spawned
+     */
     private void addEnemies (int level) {
 
-        int enemyCount = 10 * level;
+        int enemyCount = 5 * level;
         int rangeWidth = (tmap.getPixelWidth() - screenWidth) / enemyCount;
         for (int i=0; i<enemyCount; i++) {
 
@@ -417,6 +436,7 @@ public class Game extends GameCore
             }
             Enemy e = new Enemy();
             e.setX(rng.nextInt(rangeWidth) + range);
+            e.setAttackInitialX();
             e.show();
             enemies.add(e);
         }
@@ -453,6 +473,77 @@ public class Game extends GameCore
                     initialiseLevel();
                 }
             }, LEVEL_CHANGE_DURATION);
+        }
+    }
+
+
+    /**
+     * Pauses and Unpauses the game
+     */
+    private void togglePause() {
+
+        // toggle pausing
+        if (!PAUSE) {
+            // if the game isn't paused, then pause it
+            PAUSE = true;
+            player.setIdle();
+            player.pauseAnimation();
+            portal.pauseAnimation();
+            for (Enemy e : enemies) {
+                e.pauseAnimation();
+                e.getAttack().pauseAnimation();
+            }
+            for (Projectile f : fires) {
+                f.pauseAnimation();
+            }
+        } else {
+            // if the game is paused, un-pause it
+            PAUSE = false;
+            player.playAnimation();
+            player.setRunning();
+            portal.playAnimation();
+            for (Enemy e : enemies) {
+                e.playAnimation();
+                e.getAttack().playAnimation();
+            }
+            for (Projectile f : fires) {
+                f.playAnimation();
+            }
+        }
+    }
+
+    /**
+     * Handles the un-pause event by running the selected menu option
+     * @param menuIndex - menu item that was selected during pause
+     */
+    private void managePause(int menuIndex) {
+        switch (menuIndex) {
+            case 1:
+                // unpause
+                togglePause();
+                break;
+            case 2:
+                // restart level
+                initialiseLevel();
+                togglePause();
+                break;
+            case 3:
+                // debug mode - go very fast ignoring collision
+                if (VELOCITY_FACTOR == 0.1f) {
+                    VELOCITY_FACTOR = 1f;
+                }
+                else {
+                    VELOCITY_FACTOR = 0.1f;
+                }
+                togglePause();
+                break;
+            case 4:
+                stop();
+                break;
+            default:
+                System.out.println("Issue with selection, defaulting to un-pausing");
+                togglePause();
+                break;
         }
     }
 }

@@ -2,8 +2,8 @@ package collisiondetection;
 
 import game2D.Sprite;
 import game2D.TileMap;
-import model.Hero;
-import model.Key;
+import sprite.Hero;
+import sprite.Key;
 
 public class MapCollision {
 

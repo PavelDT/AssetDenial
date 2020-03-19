@@ -1,4 +1,4 @@
-package model;
+package sprite;
 
 import game2D.Animation;
 import game2D.Sprite;
@@ -11,7 +11,7 @@ public class Hero extends Sprite {
     private final String imagePathIdle = "images/character_idle.png";
     private Animation running = new Animation();
     private final String imagePathRunning = "images/character_run.png";
-    private int health = 100;
+    private int health = 1000;
 
 
     public Hero() {
@@ -43,7 +43,7 @@ public class Hero extends Sprite {
         Rectangle r = new Rectangle();
         r.x = (int)(getX() + xo);
         r.y = (int)((getY()) - getHeight()/2 - 10);
-        r.width = getHealth();
+        r.width = getHealth()/10;
         r.height = 3;
         return r;
     }
@@ -53,12 +53,19 @@ public class Hero extends Sprite {
      * @return Color - representing how healthy the enemy is
      */
     public Color getHealthColour() {
-        if (health > 80) {
+        if (health > 800) {
             return Color.GREEN;
-        } else if (health > 50) {
+        } else if (health > 500) {
             return Color.ORANGE;
         } else {
             return Color.RED;
         }
+    }
+
+    /**
+     * Drains health of player
+     */
+    public void drainHealth() {
+        health -= 2;
     }
 }

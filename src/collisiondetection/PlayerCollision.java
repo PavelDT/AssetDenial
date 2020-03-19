@@ -3,8 +3,6 @@ package collisiondetection;
 import game2D.Sprite;
 import game2D.TileMap;
 
-import java.util.Arrays;
-
 public class PlayerCollision {
 
     private Sprite sprite;
@@ -42,9 +40,9 @@ public class PlayerCollision {
         // account for both sprite height and width by adding both to X and Y respectively
         char BOTTOM_RIGHT = tmap.getTileChar((spriteX + widthOffset) / tmap.getTileWidth(), (spriteY + heightOffset) / tmap.getTileHeight());
         // account for left side mid point, ensures 1/2 the sprite cant make it into a block
-        char LEFT = tmap.getTileChar((spriteX) / tmap.getTileWidth(), (spriteY + heightOffset) / tmap.getTileHeight());;
+        char LEFT = tmap.getTileChar((spriteX) / tmap.getTileWidth(), (spriteY + heightOffset) / tmap.getTileHeight());
         // account for right side mid point, ensures 1/2 the sprite cant make it into a block
-        char RIGHT = tmap.getTileChar((spriteX + widthOffset) / tmap.getTileWidth(), (spriteY + heightOffset) / tmap.getTileHeight());;
+        char RIGHT = tmap.getTileChar((spriteX + widthOffset) / tmap.getTileWidth(), (spriteY + heightOffset) / tmap.getTileHeight());
 
         // assume no collision for all 4 corners of sprite
         // order is BOTTOM, TOP, TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
