@@ -287,6 +287,7 @@ public class Game extends GameCore
             if (s.getAnimation().hasLooped()) {
                 s.hide();
                 fires.remove(s);
+                player.setIdle();
             }
         }
 
@@ -406,6 +407,7 @@ public class Game extends GameCore
         }
         if (key == KeyEvent.VK_SPACE)
         {
+            player.setFire();
             Projectile fireSprite = new Projectile(player);
             // fire from middle of player sprite
             fireSprite.setY(player.getY() + player.getHeight()/4f);

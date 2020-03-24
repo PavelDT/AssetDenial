@@ -9,6 +9,8 @@ public class Hero extends Sprite {
 
     private Animation idle = new Animation();
     private final String imagePathIdle = "images/character_idle.png";
+    private Animation fire = new Animation();
+    private final String imagePathfire = "images/fireanim.png";
     private Animation running = new Animation();
     private final String imagePathRunning = "images/character_run.png";
     private int health = 1000;
@@ -18,6 +20,7 @@ public class Hero extends Sprite {
         super();
         idle.loadAnimationFromSheet(imagePathIdle, 9, 1, 120);
         running.loadAnimationFromSheet(imagePathRunning, 5, 1, 120);
+        fire.loadAnimationFromSheet(imagePathfire,5,1,60);
         setIdle();
     }
 
@@ -26,6 +29,13 @@ public class Hero extends Sprite {
      */
     public void setRunning() {
         setAnimation(running);
+    }
+
+    /**
+     * Switch to fire animation
+     */
+    public void setFire() {
+        setAnimation(fire);
     }
 
     /**
