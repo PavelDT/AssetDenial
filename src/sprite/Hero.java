@@ -68,4 +68,11 @@ public class Hero extends Sprite {
     public void drainHealth() {
         health -= 2;
     }
+
+    /**
+     * Drains health of player
+     */
+    public void resetHealth() {
+        health = 1000;
+    }
 }

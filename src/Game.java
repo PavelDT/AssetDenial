@@ -59,12 +59,15 @@ public class Game extends GameCore
     private TileMap tmap = new TileMap();
     // Handlers for collision
     private MapCollision mapCollision;
+    // Background sound
+    Sound backgroundSound;
+    // position of where the player sprite is frozen onto the screen.
     private final int PLAYER_SCREEN_OFFSET = 200;
     // how fast the player moves left / right
     private float VELOCITY_FACTOR = 0.1f;
     // how long to wait before switching levels in ms.
     private final int LEVEL_CHANGE_DURATION = 2500;
-    // The score will be the total time elapsed since a crash
+    // Represents total time since game elapsed
     private long total;
     // tracks player progress
     private int LEVEL = 1;
@@ -110,6 +113,9 @@ public class Game extends GameCore
 
         menu = new MenuManager(screenWidth, screenHeight);
 
+        backgroundSound = new Sound("sounds/retribution.wav", Sound.NO_EFFECT, true);
+        backgroundSound.start();
+
         initialiseLevel();
     }
 
@@ -120,9 +126,23 @@ public class Game extends GameCore
      */
     public void initialiseLevel()
     {
+        if (LEVEL > 3) {
+            // Game has been beaten
+            // you did it, GG!
+            gg();
+
+
+            LEVEL = 1;
+        }
+
         // Load the tile map and print it out so we can check it is valid
-        tmap.loadMap("maps", "map.txt");
+        tmap.loadMap("maps", "map" + LEVEL + ".txt");
         System.out.println(tmap);
+
+        // ensure sound is at normal speed
+        backgroundSound.switchEffect(Sound.NO_EFFECT);
+        // restore player health
+        player.resetHealth();
 
         // initialise collision handler for the map
         mapCollision = new MapCollision(screenWidth, tmap, player, key, PLAYER_SCREEN_OFFSET);
@@ -293,6 +313,10 @@ public class Game extends GameCore
             // check if player is hit by enemy attacks
             if (SpriteCollision.boundingBoxCollision(player, e.getAttack())) {
                 player.drainHealth();
+                // speed music up if playr is low hp.
+                if (player.getHealth() < 500) {
+                    backgroundSound.switchEffect(Sound.FAST_EFFECT);
+                }
             }
         }
 
@@ -372,7 +396,7 @@ public class Game extends GameCore
         if (key == KeyEvent.VK_S)
         {
             // Example of playing a sound as a thread
-            Sound s = new Sound("sounds/caw.wav");
+            Sound s = new Sound("sounds/caw.wav", Sound.NO_EFFECT, false);
             s.start();
         }
         if (key == KeyEvent.VK_SPACE)
@@ -545,5 +569,13 @@ public class Game extends GameCore
                 togglePause();
                 break;
         }
+    }
+
+
+    /**
+     * Initiates end-of-game sequence
+     */
+    private void gg() {
+        // todo --
     }
 }

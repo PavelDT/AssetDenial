@@ -18,7 +18,7 @@ public class Portal extends Sprite {
     }
 
     public void initSound() {
-        portalSound = new Sound(soundPath);
+        portalSound = new Sound(soundPath, Sound.NO_EFFECT, false);
     }
 
     public void playSound() {

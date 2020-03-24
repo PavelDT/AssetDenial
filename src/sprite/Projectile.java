@@ -17,7 +17,7 @@ public class Projectile extends Sprite {
         super();
         fire = new Animation();
         fire.loadAnimationFromSheet(imagePath, 1, 7, 60);
-        fireSound = new Sound("sounds/fire.wav");
+        fireSound = new Sound("sounds/fire.wav", Sound.NO_EFFECT, false);
         super.setAnimation(fire);
         super.setFlipX(player.getFlipX());
         this.player = player;
