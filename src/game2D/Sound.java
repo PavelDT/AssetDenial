@@ -48,8 +48,6 @@ public class Sound extends Thread {
 			if (loop) {
 				clip.loop(Integer.MAX_VALUE);
 			}
-
-
 		} catch (IOException ioe) {
 			System.out.println("Error during applying effect to sound file");
 			ioe.printStackTrace();
@@ -67,6 +65,7 @@ public class Sound extends Thread {
 	 * @throws IOException
 	 */
 	private byte[] applyEffect(File file, int effect) throws IOException {
+
 		// input stream is just the original file's bytes
 		BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
 		// output stream will represent the sound with effects applied to it
@@ -81,7 +80,7 @@ public class Sound extends Thread {
 				case 1:
 					// no effect selected, just write input stream bytes to output
 					out.write(tempBuffer, 0, read);
-					currentEffect = 0;
+					currentEffect = Sound.NO_EFFECT;
 					break;
 				// Echo
 				case 2:
@@ -92,13 +91,13 @@ public class Sound extends Thread {
 					// re-writing the read bytes but making the quieter by dividing
 					// creates an echo effect
 					out.write(tempBuffer, 0, read / 2);
-					currentEffect = 1;
+					currentEffect = Sound.ECHO_EFFECT;
 					break;
 				// Speed music up
 				case 3:
 					// divide the
 					out.write(tempBuffer, 0, read / 2);
-					currentEffect = 2;
+					currentEffect = Sound.FAST_EFFECT;
 					break;
 				default:
 					throw new RuntimeException("You must specify the effect to be applied");

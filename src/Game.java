@@ -158,7 +158,7 @@ public class Game extends GameCore
         player.show();
 
         // pick key position
-        key.positionKey(tmap);
+        key.positionKey(tmap, LEVEL);
         // ensure key is visible when game starts and after level is completed
         key.show();
 
@@ -322,7 +322,7 @@ public class Game extends GameCore
 
         // player has collected key
         if (SpriteCollision.boundingBoxCollision(player, key)) {
-            key.keyCollected(tmap);
+            key.keyCollected(tmap, LEVEL);
         }
 
         // check if end level sequence is needed.
@@ -339,6 +339,11 @@ public class Game extends GameCore
         PlayerCollision p = new PlayerCollision(s, tmap, (int)((( s.getX() * -1)/2)), tmap.getTileHeight() * 2);
         p.applyCollisionRules();
         mapCollision.handleTileMapCollisions(s);
+
+        // find the key
+        if ((player.getX() / 32 == 143) && (player.getY() / 32 == 13)) {
+            key.keyCollected(tmap, LEVEL);
+        }
     }
 
     /**

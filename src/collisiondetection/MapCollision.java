@@ -34,12 +34,6 @@ public class MapCollision {
      */
     public void handleTileMapCollisions(Sprite s)
     {
-        // map events
-        // find the key
-        if ((player.getX() / 32 == 143) && (player.getY() / 32 == 13)) {
-            key.keyCollected(tmap);
-        }
-
         // These statements need to be individual IFs. We can be hitting 2 borders at once.
         // BOTTOM - Apply bottom border rules
         // prevents sprite from falling off of map

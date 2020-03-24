@@ -22,6 +22,6 @@ public class Portal extends Sprite {
     }
 
     public void playSound() {
-        portalSound.start();
+        portalSound.run();
     }
 }
