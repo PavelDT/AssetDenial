@@ -221,7 +221,7 @@ public class Game extends GameCore
             e.drawTransformed(g, xo, yo);
         }
 
-        if (boss != null) {
+        if (boss != null && LEVEL == 3) {
             boss.drawTransformed(g, xo, yo);
         }
 
@@ -361,7 +361,7 @@ public class Game extends GameCore
             }
         }
 
-        if (boss != null) {
+        if (boss != null && LEVEL == 3) {
             boss.update(elapsed, player.getX());
             handleEnemyCollision(boss);
             // check if enemies are hit by player projectiles
@@ -377,7 +377,7 @@ public class Game extends GameCore
                 }
             }
 
-            // check if player is hit by boss attacks -- todo
+            // check if player is hit by boss attacks
             Sprite bossAttack = boss.getAttack();
             if (bossAttack != null && SpriteCollision.boundingBoxCollision(player, bossAttack)) {
                 player.drainHealth();
@@ -689,10 +689,12 @@ public class Game extends GameCore
      */
     private void gg() {
         // hide the boss and set it to null
-        boss.hide();
+        boss.hideAll();
+
         // pause the game and display the new game menu
         gameState.setPause(true);
         gameState.setWin(true);
+
         // reset levels
         LEVEL = 1;
 

@@ -176,4 +176,10 @@ public class Boss extends Sprite {
             attackTimer = INIT_TIMER_VAL;
         }
     }
+
+    public void hideAll() {
+        hide();
+        attack.hide();
+        attackTelegraph.hide();
+    }
 }
