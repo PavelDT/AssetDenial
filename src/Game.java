@@ -222,7 +222,7 @@ public class Game extends GameCore
         }
 
         if (boss != null) {
-            boss.drawTransformed(g, xo, yo, player.getX());
+            boss.drawTransformed(g, xo, yo);
         }
 
         // draw the key on top of the map
@@ -265,7 +265,7 @@ public class Game extends GameCore
             g.setFont(new Font("Courier", Font.BOLD,44));
             g.drawString("GAME OVER!!!", screenWidth/2 - 200, screenHeight/2);
             g.setFont(new Font("Courier", Font.BOLD,24));
-            g.drawString("Press Q to continue", screenWidth/2 - 140, screenHeight/2 + 50);
+            g.drawString("Press Q to retry", screenWidth/2 - 140, screenHeight/2 + 50);
         } else if (gameState.getPause() && ! gameState.getWin() && ! gameState.getDead()) {
             int state = gameState.decideState(LEVEL, gameState.getPause(), boss);
             menu.draw(g, state);
@@ -276,7 +276,7 @@ public class Game extends GameCore
             g.setFont(new Font("Courier", Font.BOLD,44));
             g.drawString("GAME WON!!!", screenWidth/2 - 200, screenHeight/2);
             g.setFont(new Font("Courier", Font.BOLD,24));
-            g.drawString("Press Q to retry", screenWidth/2 - 140, screenHeight/2 + 50);
+            g.drawString("Press Q to continue", screenWidth/2 - 140, screenHeight/2 + 50);
         }
     }
 
@@ -362,7 +362,7 @@ public class Game extends GameCore
         }
 
         if (boss != null) {
-            boss.update(elapsed);
+            boss.update(elapsed, player.getX());
             handleEnemyCollision(boss);
             // check if enemies are hit by player projectiles
             for (Projectile f : fires) {
@@ -378,13 +378,17 @@ public class Game extends GameCore
             }
 
             // check if player is hit by boss attacks -- todo
-//            if (SpriteCollision.boundingBoxCollision(player, e.getAttack())) {
-//                player.drainHealth();
-//                // speed music up if playr is low hp.
-//                if (player.getHealth() < 500) {
-//                    backgroundSound.switchEffect(Sound.FAST_EFFECT);
-//                }
-//            }
+            Sprite bossAttack = boss.getAttack();
+            if (bossAttack != null && SpriteCollision.boundingBoxCollision(player, bossAttack)) {
+                player.drainHealth();
+                // speed music up if playr is low hp.
+                if (player.getHealth() < 500) {
+                    backgroundSound.switchEffect(Sound.FAST_EFFECT);
+                }
+            } else {
+                // interaction for flashing damage on screen when getting hit
+                player.checkDamaged(elapsed);
+            }
         }
 
         // player has collected key
@@ -561,7 +565,7 @@ public class Game extends GameCore
                 break;
             case 3: // level 3 is a boss battle
                 boss = new Boss();
-                boss.setX(300);
+                boss.setX(1000);
                 boss.show();
                 break;
             default:
@@ -687,7 +691,6 @@ public class Game extends GameCore
         // hide the boss and set it to null
         boss.hide();
         // pause the game and display the new game menu
-        gameState.setNewGame(true);
         gameState.setPause(true);
         gameState.setWin(true);
         // reset levels
