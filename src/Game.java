@@ -37,7 +37,7 @@ public class Game extends GameCore
 
     // Game state vars
     private float gravity = 0.0003f;
-    private boolean flap = false;
+    private boolean jump = false;
 
     private Hero player = null;
     // Key used to unlock exit for level.
@@ -73,7 +73,7 @@ public class Game extends GameCore
     // Represents total time since game elapsed
     private long total;
     // tracks player progress
-    private int LEVEL = 3;
+    private int LEVEL = 1;
     // used for random number generation
     private SecureRandom rng;
     // tracks game state
@@ -246,7 +246,6 @@ public class Game extends GameCore
 
         if (gameState.getPause() && ! gameState.getWin()) {
             int state = gameState.decideState(player.getHealth(), LEVEL, gameState.getPause(), boss);
-            System.out.println(gameState.getNewGame());
             menu.draw(g, state);
         } else if (gameState.getWin()) {
             g.setColor(new Color(50, 50, 50, 200));
@@ -281,8 +280,9 @@ public class Game extends GameCore
 
         player.setAnimationSpeed(1.0f);
 
-        if (flap)
+        if (jump)
         {
+            player.setJump();
             player.setAnimationSpeed(1.8f);
             player.setVelocityY(-0.2f);
         }
@@ -300,7 +300,11 @@ public class Game extends GameCore
             if (s.getAnimation().hasLooped()) {
                 s.hide();
                 fires.remove(s);
-                player.setIdle();
+                if (player.getVelocityX() > 0) {
+                    player.setRunning();
+                } else {
+                    player.setIdle();
+                }
             }
         }
 
@@ -313,7 +317,6 @@ public class Game extends GameCore
 
             // check if enemies are hit by player projectiles
             for (Projectile f : fires) {
-                // todo -
                 // only do this if the sprite is on-screen, we don't need to detect for every single enemy.
                 if (SpriteCollision.boundingBoxCollision(e, f)) {
                     // drain & kill the enemy!
@@ -434,7 +437,11 @@ public class Game extends GameCore
             return;
         }
 
-        if (key == KeyEvent.VK_UP) flap = true;
+        if (key == KeyEvent.VK_UP){
+            jump = true;
+        } else {
+            jump = false;
+        }
 
         if (key == KeyEvent.VK_RIGHT) {
             player.setRunning();
@@ -482,7 +489,7 @@ public class Game extends GameCore
         // Need to use break to prevent fall through.
         switch (key)
         {
-            case KeyEvent.VK_UP     : flap = false; break;
+            case KeyEvent.VK_UP     : jump = false; break;
             case KeyEvent.VK_LEFT   :
                 if (player.getVelocityX() < 0) {
                     player.setVelocityX(0);
@@ -558,7 +565,6 @@ public class Game extends GameCore
             }
 
             LEVEL = LEVEL + 1;
-            System.out.println("LVL" + LEVEL);
 
             // add a delay using a timer without pausing the current execution thread
             Timer t = new Timer();
@@ -653,11 +659,11 @@ public class Game extends GameCore
     private void gg() {
         // hide the boss and set it to null
         boss.hide();
-
-        System.out.println("Player has won the game");
+        // pause the game and display the new game menu
         gameState.setNewGame(true);
         gameState.setPause(true);
         gameState.setWin(true);
+        // reset levels
         LEVEL = 1;
 
     }

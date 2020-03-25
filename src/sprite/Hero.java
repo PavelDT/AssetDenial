@@ -11,6 +11,8 @@ public class Hero extends Sprite {
     private final String imagePathIdle = "images/character_idle.png";
     private Animation fire = new Animation();
     private final String imagePathfire = "images/fireanim.png";
+    private Animation jump = new Animation();
+    private final String imagePathjump = "images/character_jump.png";
     private Animation running = new Animation();
     private final String imagePathRunning = "images/character_run.png";
     private int health = 1000;
@@ -21,6 +23,7 @@ public class Hero extends Sprite {
         idle.loadAnimationFromSheet(imagePathIdle, 9, 1, 120);
         running.loadAnimationFromSheet(imagePathRunning, 5, 1, 120);
         fire.loadAnimationFromSheet(imagePathfire,5,1,60);
+        jump.loadAnimationFromSheet(imagePathjump, 5,1,60);
         setIdle();
     }
 
@@ -36,6 +39,13 @@ public class Hero extends Sprite {
      */
     public void setFire() {
         setAnimation(fire);
+    }
+
+    /**
+     * Switch to jump animation
+     */
+    public void setJump() {
+        setAnimation(jump);
     }
 
     /**
