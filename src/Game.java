@@ -210,6 +210,11 @@ public class Game extends GameCore
         g.draw(player.getHealthRectangle(xo));
         player.drawTransformed(g);
 
+        if (player.getDamaged() > 0) {
+            g.setColor(new Color(130, 0, 0, 100));
+            g.fillRect(0,0, screenWidth, screenHeight);
+        }
+
         // draw enemies
         for (Enemy e: enemies) {
             e.setOffsets(xo, yo);
@@ -238,14 +243,31 @@ public class Game extends GameCore
         g.drawString(timeMsg, getWidth() - 120, 50);
 
 
-        // debug
+        // score and game time
         String msgDbug = "Enemies Remaining " + enemies.size();
         String msgDbug2 = "Level " + LEVEL;
         g.drawString(msgDbug, getWidth() - 200, 100);
         g.drawString(msgDbug2, getWidth() - 200, 120);
 
-        if (gameState.getPause() && ! gameState.getWin()) {
-            int state = gameState.decideState(player.getHealth(), LEVEL, gameState.getPause(), boss);
+        if (VELOCITY_FACTOR == 1f) {
+            g.setColor(new Color(170, 250, 50, 200));
+            g.drawString("DBUG Enabled!!!", getWidth() - 200, 140);
+        }
+
+        // presedence is important
+        // checking for death has to be first
+        // then to see if the game is paused
+        // then to see if the game is won
+        if (gameState.getDead()) {
+            g.setColor(new Color(170, 50, 50, 200));
+            g.fillRect(0,0, screenWidth, screenHeight);
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Courier", Font.BOLD,44));
+            g.drawString("GAME OVER!!!", screenWidth/2 - 200, screenHeight/2);
+            g.setFont(new Font("Courier", Font.BOLD,24));
+            g.drawString("Press Q to continue", screenWidth/2 - 140, screenHeight/2 + 50);
+        } else if (gameState.getPause() && ! gameState.getWin() && ! gameState.getDead()) {
+            int state = gameState.decideState(LEVEL, gameState.getPause(), boss);
             menu.draw(g, state);
         } else if (gameState.getWin()) {
             g.setColor(new Color(50, 50, 50, 200));
@@ -254,7 +276,7 @@ public class Game extends GameCore
             g.setFont(new Font("Courier", Font.BOLD,44));
             g.drawString("GAME WON!!!", screenWidth/2 - 200, screenHeight/2);
             g.setFont(new Font("Courier", Font.BOLD,24));
-            g.drawString("Press Q to continue", screenWidth/2 - 140, screenHeight/2 + 50);
+            g.drawString("Press Q to retry", screenWidth/2 - 140, screenHeight/2 + 50);
         }
     }
 
@@ -270,9 +292,8 @@ public class Game extends GameCore
             return;
         }
 
-        // todo -- display "you died" message etc.
         if (player.getHealth() < 1) {
-            gameState.setPause(true);
+            niceTry();
         }
 
         // Make adjustments to the speed of the sprite due to gravity
@@ -334,6 +355,9 @@ public class Game extends GameCore
                 if (player.getHealth() < 500) {
                     backgroundSound.switchEffect(Sound.FAST_EFFECT);
                 }
+            } else {
+                // interaction for flashing damage on screen when getting hit
+                player.checkDamaged(elapsed);
             }
         }
 
@@ -418,6 +442,9 @@ public class Game extends GameCore
             if (gameState.getWin()) {
                 gameState.setPause(true);
                 gameState.setWin(false);
+                initialiseLevel();
+            } else if (gameState.getDead()) {
+                gameState.setDead(false);
                 initialiseLevel();
             }
         }
@@ -666,5 +693,13 @@ public class Game extends GameCore
         // reset levels
         LEVEL = 1;
 
+    }
+
+    /**
+     * Player died, reset level and try again.
+     */
+    private void niceTry() {
+        gameState.setDead(true);
+        gameState.setPause(true);
     }
 }

@@ -16,6 +16,7 @@ public class Hero extends Sprite {
     private Animation running = new Animation();
     private final String imagePathRunning = "images/character_run.png";
     private int health = 1000;
+    private long damaged = 0;
 
 
     public Hero() {
@@ -55,6 +56,17 @@ public class Hero extends Sprite {
         setAnimation(idle);
     }
 
+    public long getDamaged() {
+        return damaged;
+    }
+
+    public void checkDamaged(long elapsed) {
+        if (damaged > 0)
+            damaged -= elapsed;
+        else
+            damaged = 0;
+    }
+
     public int getHealth() {
         return health;
     }
@@ -87,6 +99,7 @@ public class Hero extends Sprite {
      */
     public void drainHealth() {
         health -= 2;
+        damaged = 1000;
     }
 
     /**

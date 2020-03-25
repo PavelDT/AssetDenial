@@ -10,11 +10,12 @@ public class StateManager {
     public static int STATE_GAMEWON = 4;
 
     private boolean WIN = false;
+    private boolean DEAD = false;
     private boolean PAUSE = true;
     private boolean NEW_GAME = true;
 
-    public int decideState(int playerHealth, int level, boolean paused, Boss boss) {
-        if (playerHealth < 1) {
+    public int decideState(int level, boolean paused, Boss boss) {
+        if (DEAD) {
             return STATE_GAMEOVER;
         } else if (NEW_GAME) {
             return STATE_NEW;
@@ -49,5 +50,13 @@ public class StateManager {
 
     public void setNewGame(boolean newGame) {
         NEW_GAME = newGame;
+    }
+
+    public boolean getDead() {
+        return DEAD;
+    }
+
+    public void setDead(boolean dead) {
+        DEAD = dead;
     }
 }
