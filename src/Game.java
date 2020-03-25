@@ -348,8 +348,8 @@ public class Game extends GameCore
                 }
             }
 
-            // check if player is hit by enemy attacks
-            if (SpriteCollision.boundingBoxCollision(player, e.getAttack())) {
+            // check if player is hit by enemy or enemy attacks
+            if (SpriteCollision.boundingBoxCollision(player, e.getAttack()) || SpriteCollision.boundingBoxCollision(player, e)) {
                 player.drainHealth();
                 // speed music up if playr is low hp.
                 if (player.getHealth() < 500) {
