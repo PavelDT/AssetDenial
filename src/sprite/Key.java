@@ -26,8 +26,13 @@ public class Key extends Sprite {
      */
     public void positionKey(TileMap tmap, int level) {
 
+        // there is no key for the third level.
+        if (level == 3) {
+            return;
+        }
+
         // ensure map is large enough.
-        if (level < 3 && (tmap.getPixelWidth() / tmap.getTileWidth() < 155 || tmap.getPixelHeight() / tmap.getTileHeight() < 14)) {
+        if (tmap.getPixelWidth() / tmap.getTileWidth() < 155 || tmap.getPixelHeight() / tmap.getTileHeight() < 14) {
             throw new RuntimeException("Map isn't big enough");
         }
 
@@ -60,9 +65,6 @@ public class Key extends Sprite {
                 tmap.setTileChar('.', 214, 1);
                 tmap.setTileChar('.', 214, 2);
                 tmap.setTileChar('.', 214, 3);
-                break;
-            case 3:
-                // todo
                 break;
             default:
                 break;

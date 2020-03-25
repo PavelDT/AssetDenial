@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import collisiondetection.MapCollision;
 import collisiondetection.SpriteCollision;
+import state.StateManager;
 import view.MenuManager;
 import view.ParallaxBackground;
 import collisiondetection.PlayerCollision;
@@ -53,6 +54,8 @@ public class Game extends GameCore
     private Queue<Projectile> fires;
     // collection of enemies - Concurrent Queue taht is linked - as enemies will be added and removed frequently
     private Queue<Enemy> enemies;
+    // the boss of level 3
+    private Boss boss;
     // Collection of sprites building the parallax background
     private ParallaxBackground background;
     // Our tile map, note that we load it in init()
@@ -70,11 +73,11 @@ public class Game extends GameCore
     // Represents total time since game elapsed
     private long total;
     // tracks player progress
-    private int LEVEL = 1;
+    private int LEVEL = 3;
     // used for random number generation
     private SecureRandom rng;
-    // used for pausing the game
-    private boolean PAUSE = false;
+    // tracks game state
+    private StateManager gameState;
 
 
     /**
@@ -88,7 +91,7 @@ public class Game extends GameCore
         Game gct = new Game();
         gct.init();
         // Start in windowed mode with the given screen height and width
-        gct.run(false,screenWidth,screenHeight);
+        gct.run(false, screenWidth, screenHeight);
     }
 
     /**
@@ -99,6 +102,9 @@ public class Game extends GameCore
     {
         // Create a set of background sprites that we can
         // rearrange to give the illusion of motion
+
+        // initialise game state
+        gameState = new StateManager();
 
         // Initialise the player with an animation
         player = new Hero();
@@ -126,21 +132,13 @@ public class Game extends GameCore
      */
     public void initialiseLevel()
     {
-        if (LEVEL > 3) {
-            // Game has been beaten
-            // you did it, GG!
-            gg();
-
-
-            LEVEL = 1;
-        }
-
         // Load the tile map and print it out so we can check it is valid
         tmap.loadMap("maps", "map" + LEVEL + ".txt");
         System.out.println(tmap);
 
         // ensure sound is at normal speed
-        backgroundSound.switchEffect(Sound.NO_EFFECT);
+        backgroundSound.startLevel();
+
         // restore player health
         player.resetHealth();
 
@@ -163,14 +161,15 @@ public class Game extends GameCore
         key.show();
 
         // set portal posotion
-        portal.setX(230 * tmap.getTileWidth());
-        portal.setY(13 * tmap.getTileHeight());
+        portal.setPosition(tmap.getTileWidth(), tmap.getTileHeight());
         portal.initSound();
-        portal.show();
+        if (LEVEL != 3)
+            portal.show();
 
         // reset enemies
         enemies = new ConcurrentLinkedQueue<Enemy>();
         addEnemies(LEVEL);
+
         // reset projectiles
         fires = new ConcurrentLinkedQueue<Projectile>();
     }
@@ -217,6 +216,10 @@ public class Game extends GameCore
             e.drawTransformed(g, xo, yo, player.getX());
         }
 
+        if (boss != null) {
+            boss.drawTransformed(g, xo, yo, player.getX());
+        }
+
         // draw the key on top of the map
         key.setOffsets(xo, yo);
         key.draw(g);
@@ -241,8 +244,18 @@ public class Game extends GameCore
         g.drawString(msgDbug, getWidth() - 200, 100);
         g.drawString(msgDbug2, getWidth() - 200, 120);
 
-        if (PAUSE) {
-            menu.draw(g);
+        if (gameState.getPause() && ! gameState.getWin()) {
+            int state = gameState.decideState(player.getHealth(), LEVEL, gameState.getPause(), boss);
+            System.out.println(gameState.getNewGame());
+            menu.draw(g, state);
+        } else if (gameState.getWin()) {
+            g.setColor(new Color(50, 50, 50, 200));
+            g.fillRect(0,0, screenWidth, screenHeight);
+            g.setColor(new Color(50, 255, 255));
+            g.setFont(new Font("Courier", Font.BOLD,44));
+            g.drawString("GAME WON!!!", screenWidth/2 - 200, screenHeight/2);
+            g.setFont(new Font("Courier", Font.BOLD,24));
+            g.drawString("Press Q to continue", screenWidth/2 - 140, screenHeight/2 + 50);
         }
     }
 
@@ -254,13 +267,13 @@ public class Game extends GameCore
     public void update(long elapsed)
     {
         // dont update anything if the game is paused
-        if (PAUSE) {
+        if (gameState.getPause()) {
             return;
         }
 
         // todo -- display "you died" message etc.
         if (player.getHealth() < 1) {
-
+            gameState.setPause(true);
         }
 
         // Make adjustments to the speed of the sprite due to gravity
@@ -321,6 +334,32 @@ public class Game extends GameCore
             }
         }
 
+        if (boss != null) {
+            boss.update(elapsed);
+            handleEnemyCollision(boss);
+            // check if enemies are hit by player projectiles
+            for (Projectile f : fires) {
+                // todo -
+                // only do this if the sprite is on-screen, we don't need to detect for every single enemy.
+                if (SpriteCollision.boundingBoxCollision(boss, f)) {
+                    // drain & kill the enemy!
+                    boss.drainHealth();
+                    if (boss.getHealth() < 0 && boss.isVisible()) {
+                        gg();
+                    }
+                }
+            }
+
+            // check if player is hit by boss attacks -- todo
+//            if (SpriteCollision.boundingBoxCollision(player, e.getAttack())) {
+//                player.drainHealth();
+//                // speed music up if playr is low hp.
+//                if (player.getHealth() < 500) {
+//                    backgroundSound.switchEffect(Sound.FAST_EFFECT);
+//                }
+//            }
+        }
+
         // player has collected key
         if (SpriteCollision.boundingBoxCollision(player, key)) {
             key.keyCollected(tmap, LEVEL);
@@ -370,7 +409,17 @@ public class Game extends GameCore
         // check if player wants to unpause
         if (key == KeyEvent.VK_ESCAPE) togglePause();
 
-        if (PAUSE) {
+        if (key == KeyEvent.VK_Q) {
+            // the game has been won and the user pressed "Q"
+            // reset the game and display the menu
+            if (gameState.getWin()) {
+                gameState.setPause(true);
+                gameState.setWin(false);
+                initialiseLevel();
+            }
+        }
+
+        if (gameState.getPause()) {
             if (key == KeyEvent.VK_UP && menu.menuItem > 1) {
                 menu.menuItem--;
             }
@@ -455,21 +504,35 @@ public class Game extends GameCore
      * @param level - Current level of player, increases number of enemies spawned
      */
     private void addEnemies (int level) {
+        // decide what enemies to add based on level
+        switch (level) {
+            // for first two levels spawn lots of enemies
+            case 1:
+            case 2:
+                int enemyCount = 5 * level;
+                int rangeWidth = (tmap.getPixelWidth() - screenWidth) / enemyCount;
+                for (int i = 0; i < enemyCount; i++) {
 
-        int enemyCount = 5 * level;
-        int rangeWidth = (tmap.getPixelWidth() - screenWidth) / enemyCount;
-        for (int i=0; i<enemyCount; i++) {
-
-            int range = i * rangeWidth;
-            // reduce the range by 300, ensures enemies don't spawn on player.
-            if (i == 0) {
-                range += 300;
-            }
-            Enemy e = new Enemy();
-            e.setX(rng.nextInt(rangeWidth) + range);
-            e.setAttackInitialX();
-            e.show();
-            enemies.add(e);
+                    int range = i * rangeWidth;
+                    // reduce the range by 300, ensures enemies don't spawn on player.
+                    if (i == 0) {
+                        range += 300;
+                    }
+                    Enemy e = new Enemy();
+                    e.setX(rng.nextInt(rangeWidth) + range);
+                    e.setAttackInitialX();
+                    e.show();
+                    enemies.add(e);
+                }
+                break;
+            case 3: // level 3 is a boss battle
+                boss = new Boss();
+                boss.setX(300);
+                boss.show();
+                break;
+            default:
+                // do nothing if a level isn't specified
+                break;
         }
     }
 
@@ -494,7 +557,8 @@ public class Game extends GameCore
                 fire.stopSound();
             }
 
-            LEVEL += 1;
+            LEVEL = LEVEL + 1;
+            System.out.println("LVL" + LEVEL);
 
             // add a delay using a timer without pausing the current execution thread
             Timer t = new Timer();
@@ -512,11 +576,16 @@ public class Game extends GameCore
      * Pauses and Unpauses the game
      */
     private void togglePause() {
+        // once the game has started and the initial menu is displayed
+        // it is now treated as a paused game
+        if (gameState.getNewGame()) {
+            gameState.setNewGame(false);
+        }
 
         // toggle pausing
-        if (!PAUSE) {
+        if (!gameState.getPause()) {
             // if the game isn't paused, then pause it
-            PAUSE = true;
+            gameState.setPause(true);
             player.setIdle();
             player.pauseAnimation();
             portal.pauseAnimation();
@@ -529,9 +598,8 @@ public class Game extends GameCore
             }
         } else {
             // if the game is paused, un-pause it
-            PAUSE = false;
+            gameState.setPause(false);
             player.playAnimation();
-            player.setRunning();
             portal.playAnimation();
             for (Enemy e : enemies) {
                 e.playAnimation();
@@ -583,6 +651,14 @@ public class Game extends GameCore
      * Initiates end-of-game sequence
      */
     private void gg() {
-        // todo --
+        // hide the boss and set it to null
+        boss.hide();
+
+        System.out.println("Player has won the game");
+        gameState.setNewGame(true);
+        gameState.setPause(true);
+        gameState.setWin(true);
+        LEVEL = 1;
+
     }
 }

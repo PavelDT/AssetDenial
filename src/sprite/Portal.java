@@ -24,4 +24,9 @@ public class Portal extends Sprite {
     public void playSound() {
         portalSound.run();
     }
+
+    public void setPosition(int tileWidth, int tileHeight) {
+        setX(230 * tileWidth);
+        setY(13 * tileHeight);
+    }
 }

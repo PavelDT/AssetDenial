@@ -26,6 +26,17 @@ public class Sound extends Thread {
 		currentEffect = effect;
 	}
 
+	public void startLevel() {
+		// there is a race condition, clip initialisation is slow and when the game starts
+		// the clip could potentially be null when applying the new level "no sound effect"
+		// this is a safe guard to avoid an exception on game startup
+		if (clip == null)
+			return;
+
+		clip.setFramePosition(0);
+		switchEffect(Sound.NO_EFFECT);
+	}
+
 	/**
 	 * run will play the actual sound but you should not call it directly.
 	 * You need to call the 'start' method of your sound object (inherited
@@ -116,12 +127,6 @@ public class Sound extends Thread {
 	 */
 	public void switchEffect(int effect) {
 
-		// there is a race condition, clip initialisation is slow and when the game starts
-		// the clip could potentially be null when applying the new level "no sound effect"
-		// this is a safe guard to avoid an exception on game startup
-		if (clip == null) {
-			return;
-		}
 		if (currentEffect == effect) {
 			// nothing to do here, trying to switch to already used effect
 			return;
