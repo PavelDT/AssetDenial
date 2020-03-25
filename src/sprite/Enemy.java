@@ -12,6 +12,7 @@ public class Enemy extends Sprite {
     private Sprite attack;
     private final String imagePath = "images/enemy.png";
     private int health;
+    private int jumpTimer = 0;
 
     public Enemy() {
         super();
@@ -78,10 +79,12 @@ public class Enemy extends Sprite {
         }
     }
 
-    @Override
-    public void update(long elapsed) {
+    public void update(long elapsed, float playerX) {
         super.update(elapsed);
         attack.update(elapsed);
+
+        attackPlayer(playerX, elapsed);
+        attack.setY(this.getY() + this.getHeight() - attack.getHeight());
     }
 
     /**
@@ -90,16 +93,13 @@ public class Enemy extends Sprite {
      * @param g Graphics2D object used for drawing sprites
      * @param xo x offset
      * @param yo y offset
-     * @param playerX x position of player sprite
      */
-    public void drawTransformed(Graphics2D g, int xo, int yo, float playerX) {
+    public void drawTransformed(Graphics2D g, int xo, int yo) {
 
         this.setOffsets(xo, yo);
         super.drawTransformed(g);
 
         attack.setOffsets(xo, yo);
-        attackPlayer(playerX);
-        attack.setY(this.getY() + this.getHeight() - attack.getHeight());
         attack.drawTransformed(g);
 
         // draw the healthbar
@@ -110,8 +110,9 @@ public class Enemy extends Sprite {
     /**
      * Attacks player by moving attack towards them once player is close enough
      * @param playerX - Position of the player to attack
+     * @param elapsed - time since last frame
      */
-    private void attackPlayer(float playerX) {
+    private void attackPlayer(float playerX, long elapsed) {
 
         // decide whether to move left or right
         // 1 = left, -1 = right
@@ -128,5 +129,24 @@ public class Enemy extends Sprite {
         } else {
             attack.setVelocityX(0);
         }
+
+        // check if player is close to enemy
+        float distance = playerX - getX();
+        if (distance < 0) {
+            distance *= -1;
+        }
+
+        // if the player is close and the enemy hasn't jumped for 1 second
+        // make the enemy jump up.
+        if (distance < 300 && jumpTimer < 1) {
+            jumpTimer = 1000;
+            setVelocityY(-0.2f);
+        }
+        // regardless of how close or far the player is, drop the enemy back to its normal
+        // position after the 1 second of upper acceleration
+        if (jumpTimer > 0) {
+             jumpTimer -= elapsed;
+        }
+
     }
 }

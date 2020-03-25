@@ -218,7 +218,7 @@ public class Game extends GameCore
         // draw enemies
         for (Enemy e: enemies) {
             e.setOffsets(xo, yo);
-            e.drawTransformed(g, xo, yo, player.getX());
+            e.drawTransformed(g, xo, yo);
         }
 
         if (boss != null) {
@@ -332,7 +332,7 @@ public class Game extends GameCore
         // Then check for any collisions that may have occurred
         handlePlayerCollision(player);
         for (Enemy e : enemies) {
-            e.update(elapsed);
+            e.update(elapsed, player.getX());
             e.setVelocityY(e.getVelocityY()+(gravity * elapsed));
             handleEnemyCollision(e);
 
